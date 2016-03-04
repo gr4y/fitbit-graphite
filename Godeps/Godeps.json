@@ -1,11 +1,23 @@
 {
 	"ImportPath": "github.com/gr4y/fitbit-graphite",
-	"GoVersion": "go1.5.1",
+	"GoVersion": "go1.5.2",
 	"Deps": [
 		{
 			"ImportPath": "github.com/codegangsta/cli",
 			"Comment": "1.2.0-139-g142e6cd",
 			"Rev": "142e6cd241a4dfbf7f07a018f1f8225180018da4"
+		},
+		{
+			"ImportPath": "github.com/hydrogen18/stoppableListener",
+			"Rev": "dadc9ccc400c712e5a316107a5c462863919e579"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "c95266fa704a83c2716406ae957772a273e1380d"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2",
+			"Rev": "038cb4adce85ed41e285c2e7cc6221a92bfa44aa"
 		}
 	]
 }
