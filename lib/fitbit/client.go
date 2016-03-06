@@ -13,11 +13,8 @@ import (
 )
 
 const (
-	BASE_URL             = "https://api.fitbit.com/1/user/-"
-	RESOURCE_BODY_WEIGHT = "body/weight"
-	RESOURCE_BODY_BMI    = "body/bmi"
-	RESOURCE_BODY_FAT    = "body/fat"
-	TOKEN_FILE           = "token.json"
+	BASE_URL   = "https://api.fitbit.com/1/user/-"
+	TOKEN_FILE = "token.json"
 )
 
 type Data map[string][]TimeSeriesItem

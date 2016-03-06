@@ -1,5 +1,11 @@
 package fitbit
 
+const (
+	RESOURCE_BODY_WEIGHT = "body/weight"
+	RESOURCE_BODY_BMI    = "body/bmi"
+	RESOURCE_BODY_FAT    = "body/fat"
+)
+
 type Body struct {
 	API Client
 }
