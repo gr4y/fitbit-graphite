@@ -13,22 +13,11 @@ import (
 )
 
 const (
-	BASE_URL                                   = "https://api.fitbit.com/1/user/-"
-	RESOURCE_ACTIVITIES_CALORIES               = "activities/calories"
-	RESOURCE_ACTIVITIES_CALORIES_BMR           = "activities/caloriesBMR"
-	RESOURCE_ACTIVITIES_STEPS                  = "activities/steps"
-	RESOURCE_ACTIVITIES_DISTANCE               = "activities/distance"
-	RESOURCE_ACTIVITIES_FLOOR                  = "activities/floors"
-	RESOURCE_ACTIVITIES_ELEVATION              = "activities/elevation"
-	RESOURCE_ACTIVITIES_MINUTES_SEDENTARY      = "activities/minutesSedentary"
-	RESOURCE_ACTIVITIES_MINUTES_LIGHTLY_ACTIVE = "activities/minutesLightlyActive"
-	RESOURCE_ACTIVITIES_MINUTES_FAIRLY_ACTIVE  = "activities/minutesFairlyActive"
-	RESOURCE_ACTIVITIES_MINUTES_VERY_ACTIVE    = "activities/minutesVeryActive"
-	RESOURCE_ACTIVITIES_ACTIVITY_CALORIES      = "activities/activityCalories"
-	RESOURCE_BODY_WEIGHT                       = "body/weight"
-	RESOURCE_BODY_BMI                          = "body/bmi"
-	RESOURCE_BODY_FAT                          = "body/fat"
-	TOKEN_FILE                                 = "token.json"
+	BASE_URL             = "https://api.fitbit.com/1/user/-"
+	RESOURCE_BODY_WEIGHT = "body/weight"
+	RESOURCE_BODY_BMI    = "body/bmi"
+	RESOURCE_BODY_FAT    = "body/fat"
+	TOKEN_FILE           = "token.json"
 )
 
 type Data map[string][]TimeSeriesItem
@@ -38,12 +27,17 @@ type TimeSeriesItem struct {
 }
 
 type CodeCallbackFunc func(url string) (code string)
+type API struct {
+	Activities Activities
+	Body       Body
+}
+
 type Client struct {
 	Client http.Client
 }
 
-// Returns a new fitbit.Client Object.
-func Connect(conf ClientConfig, codeCallback CodeCallbackFunc) (Client, error) {
+// Returns a new fitbit.API Object.
+func Connect(conf ClientConfig, codeCallback CodeCallbackFunc) (API, error) {
 	oAuthConfig := &oauth2.Config{
 		ClientID: conf.ClientID, ClientSecret: conf.ClientSecret, Scopes: conf.Scopes,
 		Endpoint: oauth2.Endpoint{
@@ -63,10 +57,10 @@ func Connect(conf ClientConfig, codeCallback CodeCallbackFunc) (Client, error) {
 		if code != "" {
 			token, err = oAuthConfig.Exchange(oauth2.NoContext, code)
 			if err != nil {
-				return Client{}, err
+				return API{}, err
 			}
 		} else {
-			return Client{}, errors.New("code can't be empty.")
+			return API{}, errors.New("code can't be empty.")
 		}
 	}
 
@@ -75,17 +69,21 @@ func Connect(conf ClientConfig, codeCallback CodeCallbackFunc) (Client, error) {
 	tokenSrc := oAuthConfig.TokenSource(oauth2.NoContext, token)
 	newToken, err := tokenSrc.Token()
 	if err != nil {
-		return Client{}, err
+		return API{}, err
 	}
 
 	// Initialize new Client with TokenSource
-	newClient := oauth2.NewClient(oauth2.NoContext, tokenSrc)
+	newHttpClient := oauth2.NewClient(oauth2.NoContext, tokenSrc)
 
 	// Saves the new token, just in case it was refreshed.
 	tokenToJSON(newToken)
 
-	return Client{
-		Client: *newClient,
+	// Intialize new API Client, wrapping an simple http.Client
+	apiClient := Client{Client: *newHttpClient}
+
+	return API{
+		Activities: Activities{API: apiClient},
+		Body:       Body{API: apiClient},
 	}, nil
 }
 
@@ -118,94 +116,6 @@ func random_string(strlen int) string {
 		result[i] = chars[rand.Intn(len(chars))]
 	}
 	return string(result)
-}
-
-/****
-Minutes Sedentary
-****/
-func (c *Client) GetMinutesSedentary() ([]TimeSeriesItem, error) {
-	return c.getTimeSeriesData(RESOURCE_ACTIVITIES_MINUTES_SEDENTARY, "today", "1d")
-}
-
-func (c *Client) GetMinutesSedentaryForDateAndPeriod(date string, period string) ([]TimeSeriesItem, error) {
-	return c.getTimeSeriesData(RESOURCE_ACTIVITIES_MINUTES_SEDENTARY, date, period)
-}
-
-/****
-Minutes Lightly Active
-****/
-func (c *Client) GetMinutesLightlyActive() ([]TimeSeriesItem, error) {
-	return c.getTimeSeriesData(RESOURCE_ACTIVITIES_MINUTES_LIGHTLY_ACTIVE, "today", "1d")
-}
-
-func (c *Client) GetMinutesLightlyActiveForDateAndPeriod(date string, period string) ([]TimeSeriesItem, error) {
-	return c.getTimeSeriesData(RESOURCE_ACTIVITIES_MINUTES_LIGHTLY_ACTIVE, date, period)
-}
-
-/****
-Minutes Fairly Active
-****/
-func (c *Client) GetMinutesFairlyActive() ([]TimeSeriesItem, error) {
-	return c.getTimeSeriesData(RESOURCE_ACTIVITIES_MINUTES_FAIRLY_ACTIVE, "today", "1d")
-}
-
-func (c *Client) GetMinutesFairlyActiveForDateAndPeriod(date string, period string) ([]TimeSeriesItem, error) {
-	return c.getTimeSeriesData(RESOURCE_ACTIVITIES_MINUTES_FAIRLY_ACTIVE, date, period)
-}
-
-/****
-Minutes Very Active
-****/
-func (c *Client) GetMinutesVeryActive() ([]TimeSeriesItem, error) {
-	return c.getTimeSeriesData(RESOURCE_ACTIVITIES_MINUTES_VERY_ACTIVE, "today", "1d")
-}
-
-func (c *Client) GetMinutesVeryActiveForDateAndPeriod(date string, period string) ([]TimeSeriesItem, error) {
-	return c.getTimeSeriesData(RESOURCE_ACTIVITIES_MINUTES_VERY_ACTIVE, date, period)
-}
-
-/****
-Steps
-****/
-func (c *Client) GetSteps() ([]TimeSeriesItem, error) {
-	return c.GetStepsForDateAndPeriod("today", "1d")
-}
-
-func (c *Client) GetStepsForDateAndPeriod(date string, period string) ([]TimeSeriesItem, error) {
-	return c.getTimeSeriesData(RESOURCE_ACTIVITIES_STEPS, date, period)
-}
-
-/****
-Weight
-****/
-func (c *Client) GetWeight() ([]TimeSeriesItem, error) {
-	return c.GetWeightForDateAndPeriod("today", "1d")
-}
-
-func (c *Client) GetWeightForDateAndPeriod(date string, period string) ([]TimeSeriesItem, error) {
-	return c.getTimeSeriesData(RESOURCE_BODY_WEIGHT, date, period)
-}
-
-/****
-BMI
-****/
-func (c *Client) GetBMI() ([]TimeSeriesItem, error) {
-	return c.GetBMIForDateAndPeriod("today", "1d")
-}
-
-func (c *Client) GetBMIForDateAndPeriod(date string, period string) ([]TimeSeriesItem, error) {
-	return c.getTimeSeriesData(RESOURCE_BODY_BMI, date, period)
-}
-
-/****
-Fat
-****/
-func (c *Client) GetFat() ([]TimeSeriesItem, error) {
-	return c.GetFatForDateAndPeriod("today", "1d")
-}
-
-func (c *Client) GetFatForDateAndPeriod(date string, period string) ([]TimeSeriesItem, error) {
-	return c.getTimeSeriesData(RESOURCE_BODY_FAT, date, period)
 }
 
 /****

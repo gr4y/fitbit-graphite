@@ -6,7 +6,7 @@ import (
 )
 
 type ActivitiesProcessor struct {
-	Client fitbit.Client
+	Activities fitbit.Activities
 }
 
 func (p ActivitiesProcessor) FetchData(start_date string, period string) {
@@ -17,7 +17,7 @@ func (p ActivitiesProcessor) FetchData(start_date string, period string) {
 }
 
 func (p ActivitiesProcessor) fetchSteps(start_date string, period string) (map[string]string, error) {
-	steps, err := p.Client.GetStepsForDateAndPeriod(start_date, period)
+	steps, err := p.Activities.GetStepsForDateAndPeriod(start_date, period)
 	if err != nil {
 		return nil, err
 	}

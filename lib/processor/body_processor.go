@@ -6,11 +6,11 @@ import (
 )
 
 type BodyProcessor struct {
-	Client fitbit.Client
+	Body fitbit.Body
 }
 
 func (p BodyProcessor) FetchData(start_date string, period string) {
-	weight_data, err := p.Client.GetWeightForDateAndPeriod(start_date, period)
+	weight_data, err := p.Body.GetWeightForDateAndPeriod(start_date, period)
 	if err != nil {
 		panic(err)
 	}
@@ -18,7 +18,7 @@ func (p BodyProcessor) FetchData(start_date string, period string) {
 		fmt.Println(datapoint.DateTime, ": ", datapoint.Value)
 	}
 
-	bmi_data, err := p.Client.GetBMIForDateAndPeriod(start_date, period)
+	bmi_data, err := p.Body.GetBMIForDateAndPeriod(start_date, period)
 	if err != nil {
 		panic(err)
 	}
@@ -26,7 +26,7 @@ func (p BodyProcessor) FetchData(start_date string, period string) {
 		fmt.Println(datapoint.DateTime, ": ", datapoint.Value)
 	}
 
-	fat_data, err := p.Client.GetFatForDateAndPeriod(start_date, period)
+	fat_data, err := p.Body.GetFatForDateAndPeriod(start_date, period)
 	if err != nil {
 		panic(err)
 	}

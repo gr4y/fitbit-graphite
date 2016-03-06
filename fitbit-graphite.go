@@ -32,8 +32,8 @@ func main() {
 	}
 
 	plugins := []processor.Processor{
-		processor.ActivitiesProcessor{Client: client},
-		processor.BodyProcessor{Client: client},
+		processor.ActivitiesProcessor{Activities: client.Activities},
+		processor.BodyProcessor{Body: client.Body},
 	}
 
 	for _, plugin := range plugins {
