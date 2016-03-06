@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gr4y/fitbit-graphite/lib/fitbit"
-	"github.com/gr4y/fitbit-graphite/lib/plugins"
+	"github.com/gr4y/fitbit-graphite/lib/processor"
 	"log"
 )
 
@@ -31,10 +31,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	plugins := []plugins.Plugin{
-		plugins.StepsPlugin{Client: client},
-		plugins.WeightPlugin{Client: client},
-		//		plugins.CaloriesPlugin{Client: client},
+	plugins := []processor.Processor{
+		processor.ActivitiesProcessor{Client: client},
+		processor.BodyProcessor{Client: client},
 	}
 
 	for _, plugin := range plugins {
