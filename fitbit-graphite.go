@@ -5,7 +5,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/gr4y/fitbit-graphite/lib/fitbit"
 	"github.com/gr4y/fitbit-graphite/lib/processor"
-	"log"
+	"net"
 	"os"
 )
 
@@ -25,9 +25,19 @@ func main() {
 			Usage: "OAuth 2.0 Client Secret",
 		},
 		cli.StringFlag{
-			Name:  "CarbonPrefix,CP",
-			Value: "fitness",
+			Name:  "CarbonPrefix",
+			Value: "fitbit",
 			Usage: "Prefix for Carbon",
+		},
+		cli.StringFlag{
+			Name:  "CarbonHost,CH",
+			Value: "fluffy",
+			Usage: "Hostname of Carbon instance",
+		},
+		cli.IntFlag{
+			Name:  "CarbonPost,CP",
+			Value: 2003,
+			Usage: "Port of Carbon Instance",
 		},
 	}
 	app.Action = func(c *cli.Context) {
@@ -51,7 +61,7 @@ func main() {
 		// Connect to FitBit
 		client, err := fitbit.Connect(clientConfig, callbackFunc)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
 		processors := []processor.Processor{
@@ -72,20 +82,26 @@ func main() {
 		var lines []string
 		for _, proc := range processors {
 			items, err := proc.FetchData("today", "1m")
-			if err != nil {
-				log.Fatal(err)
+			// TODO Maybe there should be some better error handling.
+			// In any cases where the Rate Limit is exceeded all data we already fetched is purged and not sent into carbon
+			// Which is not that great...
+			if err == nil {
+				lines = append(lines, items...)
+				panic(err)
 			}
-			lines = append(lines, items...)
+
 		}
 
-		sendMetrics(lines, fmt.Sprintf("%s.%s", c.String("CarbonPrefix"), userId))
+		conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", c.String("CarbonHost"), c.Int("CarbonPort")))
+		if err != nil {
+			panic(err)
+		}
+		defer conn.Close()
+		for _, line := range lines {
+			_, err := conn.Write([]byte(fmt.Sprint("%s.%s.%s", c.String("CarbonPrefix"), userId, line)))
+			panic(err)
+		}
 
 	}
 	app.Run(os.Args)
-}
-
-func sendMetrics(lines []string, prefix string) {
-	for _, line := range lines {
-		fmt.Println(fmt.Sprintf("%s.%s", prefix, line))
-	}
 }
