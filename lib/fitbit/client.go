@@ -8,25 +8,44 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"strings"
 	"time"
 )
 
 const (
+	DEBUG      = true
 	BASE_URL   = "https://api.fitbit.com/1/user/-"
 	TOKEN_FILE = "token.json"
 )
 
-type Data map[string][]TimeSeriesItem
+type TimeSeriesData map[string][]TimeSeriesItem
 type TimeSeriesItem struct {
-	DateTime string `json:"dateTime"`
-	Value    string `json:"value"`
+	DateTime CustomDate `json:"dateTime"`
+	Value    string     `json:"value"`
+}
+
+type CustomDate struct {
+	time.Time
+}
+
+func (cd *CustomDate) UnmarshalJSON(b []byte) error {
+	if b[0] == '"' && b[len(b)-1] == '"' {
+		b = b[1 : len(b)-1]
+	}
+
+	timeObj, err := time.Parse("2006-01-02", string(b))
+	if err != nil {
+		return err
+	}
+	*cd = CustomDate{Time: timeObj}
+	return nil
 }
 
 type CodeCallbackFunc func(url string) (code string)
 type API struct {
+	Profile    Profile
 	Activities Activities
 	Body       Body
+	Sleep      Sleep
 }
 
 type Client struct {
@@ -79,8 +98,10 @@ func Connect(conf ClientConfig, codeCallback CodeCallbackFunc) (API, error) {
 	apiClient := Client{Client: *newHttpClient}
 
 	return API{
+		Profile:    Profile{API: apiClient},
 		Activities: Activities{API: apiClient},
 		Body:       Body{API: apiClient},
+		Sleep:      Sleep{API: apiClient},
 	}, nil
 }
 
@@ -118,8 +139,8 @@ func random_string(strlen int) string {
 /****
 Internal Functions
 ****/
-func (c *Client) getTimeSeriesData(resourcePath string, date string, period string) ([]TimeSeriesItem, error) {
-	var timeSeriesData Data
+func (c *Client) getTimeSeriesData(resourcePath string, date string, period string) (TimeSeriesData, error) {
+	var timeSeriesData TimeSeriesData
 	url := c.buildUrl(resourcePath, date, period)
 	resp, err := c.Client.Get(url)
 	if err != nil {
@@ -129,14 +150,29 @@ func (c *Client) getTimeSeriesData(resourcePath string, date string, period stri
 	if err != nil {
 		return nil, err
 	}
-	//fmt.Println(fmt.Sprintf("URL %s: \r\n Response: %s", url, string(bytes)))
+
+	if DEBUG {
+		fmt.Println("#### DEBUG Output Begin ####")
+		fmt.Println(fmt.Sprintf("Request URL: %s\r\n", url))
+		fmt.Println("\r\n### HTTP Request ###")
+		fmt.Println(fmt.Sprintf("Request: %+v", resp.Request))
+		fmt.Println("\r\n### HTTP Response")
+		fmt.Println(fmt.Sprintf("Response Object: %+v", resp))
+		fmt.Println(fmt.Sprintf("Response Body: %s", string(bytes)))
+		fmt.Println("#### DEBUG Output End ####")
+	}
+
 	if err := json.Unmarshal(bytes, &timeSeriesData); err != nil {
 		return nil, err
 	}
-	key := strings.Replace(resourcePath, "/", "-", 1)
-	return timeSeriesData[key], nil
+	return timeSeriesData, nil
 }
 
 func (c *Client) buildUrl(resourcePath string, date string, period string) string {
-	return fmt.Sprintf("%s/%s/date/%s/%s.json", BASE_URL, resourcePath, date, period)
+	base_url := fmt.Sprintf("%s/%s", BASE_URL, resourcePath)
+	if date == "" && period == "" {
+		return fmt.Sprintf("%s.json", base_url)
+	} else {
+		return fmt.Sprintf("%s/date/%s/%s.json", base_url, date, period)
+	}
 }
