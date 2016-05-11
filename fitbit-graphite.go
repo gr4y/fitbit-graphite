@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/gr4y/fitbit-graphite/lib/fitbit"
@@ -31,11 +32,10 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "CarbonHost,CH",
-			Value: "fluffy",
 			Usage: "Hostname of Carbon instance",
 		},
 		cli.IntFlag{
-			Name:  "CarbonPost,CP",
+			Name:  "CarbonPort,CP",
 			Value: 2003,
 			Usage: "Port of Carbon Instance",
 		},
@@ -81,27 +81,31 @@ func main() {
 
 		var lines []string
 		for _, proc := range processors {
-			items, err := proc.FetchData("today", "1m")
+			items, err := proc.FetchData("today", "max")
 			// TODO Maybe there should be some better error handling.
 			// In any cases where the Rate Limit is exceeded all data we already fetched is purged and not sent into carbon
 			// Which is not that great...
 			if err == nil {
 				lines = append(lines, items...)
+			} else {
 				panic(err)
 			}
-
 		}
 
 		conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", c.String("CarbonHost"), c.Int("CarbonPort")))
 		if err != nil {
 			panic(err)
 		}
-		defer conn.Close()
+		buf := bytes.NewBufferString("")
 		for _, line := range lines {
-			_, err := conn.Write([]byte(fmt.Sprint("%s.%s.%s", c.String("CarbonPrefix"), userId, line)))
+			buf.WriteString(fmt.Sprintf("%s.%s.%s\n\r", c.String("CarbonPrefix"), userId, line))
+		}
+		fmt.Print(buf.String())
+		_, err = conn.Write(buf.Bytes())
+		if err != nil {
 			panic(err)
 		}
-
+		conn.Close()
 	}
 	app.Run(os.Args)
 }
