@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	DEBUG      = true
+	DEBUG      = false
 	BASE_URL   = "https://api.fitbit.com/1/user/-"
 	TOKEN_FILE = "token.json"
 )
