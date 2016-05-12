@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/gr4y/fitbit-graphite/lib/fitbit"
@@ -41,6 +42,18 @@ func main() {
 		},
 	}
 	app.Action = func(c *cli.Context) {
+
+		if c.String("CarbonHost") == "" {
+			panic(errors.New("Command Line Parameter CarbonHost is required. Aborting."))
+		}
+
+		if c.String("ClientSecret") == "" {
+			panic(errors.New("Command Line Parameter ClientSecret is required. Aborting."))
+		}
+
+		if c.String("ClientID") == "" {
+			panic(errors.New("Command Line Parameter ClientID is required. Aborting."))
+		}
 
 		clientConfig := fitbit.ClientConfig{
 			ClientID:     c.String("ClientID"),
