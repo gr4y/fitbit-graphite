@@ -107,7 +107,12 @@ func main() {
 			if err == nil {
 				lines = append(lines, items...)
 			} else {
-				panic(err)
+				fmt.Sprintln("%v+", err)
+				// For now I will just print out this error.
+				// So it's quite weird that the JSON API Endpoint returns HTML when there is an Internal Server Error
+				// on their JSON API Endpoints
+				log.Print(err)
+				//				panic(err)
 			}
 		}
 

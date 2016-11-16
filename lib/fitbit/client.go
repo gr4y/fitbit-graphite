@@ -146,6 +146,13 @@ func (c *Client) getTimeSeriesData(resourcePath string, date string, period stri
 	if err != nil {
 		return nil, err
 	}
+
+	// Check if HTTP Response is OK
+	// Otherwhise, leave the party with an error
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New(fmt.Sprintf("Can't fetch data for Endpoint %s (HTTP Status Code: %d)", url, resp.StatusCode))
+	}
+
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
