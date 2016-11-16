@@ -7,6 +7,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/gr4y/fitbit-graphite/lib/fitbit"
 	"github.com/gr4y/fitbit-graphite/lib/processor"
+	"log"
 	"net"
 	"os"
 )
@@ -40,6 +41,10 @@ func main() {
 			Value: 2003,
 			Usage: "Port of Carbon Instance",
 		},
+		cli.BoolFlag{
+			Name:  "debug",
+			Usage: "Enables Debug Output",
+		},
 	}
 	app.Action = func(c *cli.Context) {
 
@@ -58,6 +63,7 @@ func main() {
 		clientConfig := fitbit.ClientConfig{
 			ClientID:     c.String("ClientID"),
 			ClientSecret: c.String("ClientSecret"),
+			Debug:        c.Bool("debug"),
 			Scopes:       []string{"activity", "heartrate", "location", "nutrition", "profile", "settings", "sleep", "social", "weight"},
 		}
 
@@ -113,7 +119,13 @@ func main() {
 		for _, line := range lines {
 			buf.WriteString(fmt.Sprintf("%s.%s.%s\n\r", c.String("CarbonPrefix"), userId, line))
 		}
-		fmt.Print(buf.String())
+
+		if clientConfig.Debug {
+			fmt.Println("### BEGIN DEBUG ###")
+			fmt.Print(buf.String())
+			fmt.Println("### END DEBUG ###")
+		}
+
 		_, err = conn.Write(buf.Bytes())
 		if err != nil {
 			panic(err)

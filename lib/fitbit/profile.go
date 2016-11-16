@@ -28,7 +28,7 @@ func (p *Profile) GetProfile() (UserProfile, error) {
 	resp, err := p.API.Client.Get(profileUrl)
 	bytes, err := ioutil.ReadAll(resp.Body)
 
-	if DEBUG {
+	if p.API.ClientConfig.Debug {
 		fmt.Println("#### DEBUG Output Begin ####")
 		fmt.Println(fmt.Sprintf("Request URL: %s\r\n", profileUrl))
 		fmt.Println("\r\n### HTTP Request ###")

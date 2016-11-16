@@ -12,7 +12,6 @@ import (
 )
 
 const (
-	DEBUG      = false
 	BASE_URL   = "https://api.fitbit.com/1/user/-"
 	TOKEN_FILE = "token.json"
 )
@@ -49,7 +48,8 @@ type API struct {
 }
 
 type Client struct {
-	Client http.Client
+	Client       http.Client
+	ClientConfig ClientConfig
 }
 
 // Returns a new fitbit.API Object.
@@ -95,7 +95,7 @@ func Connect(conf ClientConfig, codeCallback CodeCallbackFunc) (API, error) {
 	tokenToJSON(newToken)
 
 	// Intialize new API Client, wrapping an simple http.Client
-	apiClient := Client{Client: *newHttpClient}
+	apiClient := Client{Client: *newHttpClient, ClientConfig: conf}
 
 	return API{
 		Profile:    Profile{API: apiClient},
@@ -151,7 +151,7 @@ func (c *Client) getTimeSeriesData(resourcePath string, date string, period stri
 		return nil, err
 	}
 
-	if DEBUG {
+	if c.ClientConfig.Debug {
 		fmt.Println("#### DEBUG Output Begin ####")
 		fmt.Println(fmt.Sprintf("Request URL: %s\r\n", url))
 		fmt.Println("\r\n### HTTP Request ###")
