@@ -22,11 +22,11 @@ type Activities struct {
 /****
 Heart
 ****/
-func (b *Body) GetHeartRate() (TimeSeriesData, error) {
+func (b *Activities) GetHeartRate() (TimeSeriesData, error) {
 	return a.GetHeartForDateAndPeriod("today", "1d")
 }
 
-func (b *Body) GetHeartRateForDateAndPeriod(date string, period string) (TimeSeriesData, error) {
+func (b *Activities) GetHeartRateForDateAndPeriod(date string, period string) (TimeSeriesData, error) {
 	return a.API.getTimeSeriesData(RESOURCE_ACTIVITIES_HEART, date, period)
 }
 
