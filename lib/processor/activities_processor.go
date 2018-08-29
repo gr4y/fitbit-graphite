@@ -71,7 +71,7 @@ func (p ActivitiesProcessor) FetchData(date string, period string) ([]string, er
 	}
 	collectedData = append(collectedData, caloriesBMR)
 
-	heart_data, err := p.Body.GetHeartRateForDateAndPeriod(start_date, period)
+	heart_data, err := p.Activities.GetHeartRateForDateAndPeriod(start_date, period)
 	if err != nil {
 		return nil, err
 	}
