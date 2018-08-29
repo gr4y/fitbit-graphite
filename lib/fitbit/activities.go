@@ -12,10 +12,22 @@ const (
 	RESOURCE_ACTIVITIES_MINUTES_FAIRLY_ACTIVE  = "activities/minutesFairlyActive"
 	RESOURCE_ACTIVITIES_MINUTES_VERY_ACTIVE    = "activities/minutesVeryActive"
 	RESOURCE_ACTIVITIES_ACTIVITY_CALORIES      = "activities/activityCalories"
+	RESOURCE_ACTIVITIES_HEART		   = "activities/heart"
 )
 
 type Activities struct {
 	API Client
+}
+
+/****
+Heart
+****/
+func (b *Body) GetHeartRate() (TimeSeriesData, error) {
+	return a.GetHeartForDateAndPeriod("today", "1d")
+}
+
+func (b *Body) GetHeartRateForDateAndPeriod(date string, period string) (TimeSeriesData, error) {
+	return a.API.getTimeSeriesData(RESOURCE_ACTIVITIES_HEART, date, period)
 }
 
 /*** Calories ***/

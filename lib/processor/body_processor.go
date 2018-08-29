@@ -25,11 +25,6 @@ func (p BodyProcessor) FetchData(start_date string, period string) ([]string, er
 		return nil, err
 	}
 	collectedData = append(collectedData, bmi_data)
-	fat_data, err := p.Body.GetHeartForDateAndPeriod(start_date, period)
-	if err != nil {
-		return nil, err
-	}
-	collectedData = append(collectedData, fat_data)
 
 	return convertTimeSeriesData(collectedData), nil
 }

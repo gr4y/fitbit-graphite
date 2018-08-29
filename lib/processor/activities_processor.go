@@ -71,6 +71,12 @@ func (p ActivitiesProcessor) FetchData(date string, period string) ([]string, er
 	}
 	collectedData = append(collectedData, caloriesBMR)
 
+	heart_data, err := p.Body.GetHeartRateForDateAndPeriod(start_date, period)
+	if err != nil {
+		return nil, err
+	}
+	collectedData = append(collectedData, heart_data)
+
 	// So FitBit was just a dick and disabled that period for that endpoint
 	// https://community.fitbit.com/t5/Web-API/504-Error-Code-for-activityCalories/m-p/1579598/highlight/true#M6393
 	// Well then I have to assume that "max" equals "1y", until they decide to disable that date period for every endpoint
@@ -81,11 +87,11 @@ func (p ActivitiesProcessor) FetchData(date string, period string) ([]string, er
 	// TODO whatever to do wih this crap.
 	// if period == "max" {
 	// 	period = "1y"
-	// 	activityCalories, err := p.Activities.GetActivityCaloriesForDateAndPeriod(date, period)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	collectedData = append(collectedData, activityCalories)
+	activityCalories, err := p.Activities.GetActivityCaloriesForDateAndPeriod(date, period)
+	if err != nil {
+		return nil, err
+	}
+	collectedData = append(collectedData, activityCalories)
 	// }
 
 	return convertTimeSeriesData(collectedData), nil
